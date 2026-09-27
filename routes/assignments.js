@@ -1,5 +1,5 @@
 const express = require('express');
-const assignmentStore = require('../data/assignmentStore');
+const assignmentStore = require('../database/assignmentRepository');
 
 const router = express.Router();
 
@@ -69,18 +69,19 @@ function sendValidationError(res, errors) {
 }
 
 // GET /api/assignments - return every assignment.
-router.get('/', (req, res) => {
-  res.json(assignmentStore.getAll());
+router.get('/', async (req, res) => {
+  const assignments = await assignmentStore.getAll();
+  return res.json(assignments);
 });
 
 // GET /api/assignments/:id - return one assignment.
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const id = parseId(req.params.id);
   if (id === null) {
     return res.status(400).json({ error: 'Assignment id must be a positive integer.' });
   }
 
-  const assignment = assignmentStore.getById(id);
+  const assignment = await assignmentStore.getById(id);
   if (!assignment) {
     return res.status(404).json({ error: 'Assignment not found.' });
   }
@@ -89,18 +90,18 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/assignments - validate and create an assignment.
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const result = validateAssignment(req.body);
   if (Object.keys(result.errors).length > 0) {
     return sendValidationError(res, result.errors);
   }
 
-  const assignment = assignmentStore.create(result.body);
+  const assignment = await assignmentStore.create(result.body);
   return res.status(201).location(`/api/assignments/${assignment.id}`).json(assignment);
 });
 
 // PUT /api/assignments/:id - validate and replace an assignment's details.
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   const id = parseId(req.params.id);
   if (id === null) {
     return res.status(400).json({ error: 'Assignment id must be a positive integer.' });
@@ -111,7 +112,7 @@ router.put('/:id', (req, res) => {
     return sendValidationError(res, result.errors);
   }
 
-  const assignment = assignmentStore.update(id, result.body);
+  const assignment = await assignmentStore.update(id, result.body);
   if (!assignment) {
     return res.status(404).json({ error: 'Assignment not found.' });
   }
@@ -120,13 +121,13 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE /api/assignments/:id - remove an assignment.
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   const id = parseId(req.params.id);
   if (id === null) {
     return res.status(400).json({ error: 'Assignment id must be a positive integer.' });
   }
 
-  const assignment = assignmentStore.remove(id);
+  const assignment = await assignmentStore.remove(id);
   if (!assignment) {
     return res.status(404).json({ error: 'Assignment not found.' });
   }

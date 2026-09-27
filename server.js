@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const assignmentsRouter = require('./routes/assignments');
+const { initializeDatabase, database } = require('./database/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,20 +24,38 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found.' });
 });
 
-// Handle malformed JSON and any unexpected server errors consistently.
+// Handle malformed JSON, database errors, and other server errors consistently.
 app.use((error, req, res, next) => {
   if (error.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'Request body must contain valid JSON.' });
+  }
+
+  if (error.code && error.code.startsWith('SQLITE_')) {
+    console.error('Database error:', error);
+    return res.status(500).json({ error: 'A database error occurred.' });
   }
 
   console.error(error);
   return res.status(500).json({ error: 'Internal server error.' });
 });
 
+async function startServer() {
+  try {
+    await initializeDatabase();
+
+    app.listen(PORT, () => {
+      console.log(`Assignment Submission Tracker is running at http://localhost:${PORT}`);
+      console.log('SQLite database is ready.');
+    });
+  } catch (error) {
+    console.error('Could not initialize the SQLite database:', error);
+    process.exitCode = 1;
+    database.close();
+  }
+}
+
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Assignment Submission Tracker is running at http://localhost:${PORT}`);
-  });
+  startServer();
 }
 
 module.exports = app;
