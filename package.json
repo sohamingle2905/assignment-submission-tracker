@@ -1,0 +1,16 @@
+{
+  "name": "assignment-submission-tracker",
+  "version": "1.0.0",
+  "description": "A simple college project for tracking assignment submissions.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}
