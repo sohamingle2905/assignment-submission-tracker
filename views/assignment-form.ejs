@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= isEdit ? 'Edit assignment' : 'Add assignment' %> | Assignment Submission Tracker</title>
+  <link rel="stylesheet" href="/server-dashboard.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="/"><span class="brand-mark">T</span><span><strong>Trackwise</strong><small>STUDENT WORKSPACE</small></span></a>
+      <p class="side-heading">WORKSPACE</p>
+      <nav aria-label="Main navigation"><a class="nav-link" href="/#dashboard">▦ <span>Dashboard</span></a><a class="nav-link active" href="/#assignments">☷ <span>Assignments</span></a></nav>
+      <div class="side-note"><strong>Assignment tracker</strong><small>Saved to this device</small></div>
+    </aside>
+    <main id="dashboard">
+      <header class="topbar"><a href="/">← Back to dashboard</a><span>Assignment details</span></header>
+      <div class="content form-content">
+        <section class="form-panel">
+          <p class="eyebrow">ASSIGNMENT DETAILS</p>
+          <h1><%= isEdit ? 'Edit assignment' : 'Add assignment' %></h1>
+          <p class="form-intro">Add a few details to keep your deadlines organized.</p>
+          <% if (Object.keys(errors || {}).length) { %><div class="error-box" role="alert">Please correct the highlighted fields.</div><% } %>
+          <form action="<%= isEdit ? `/assignments/${assignment.id}` : '/assignments' %>" method="post" class="assignment-form">
+            <label>Assignment title <span>*</span><input name="title" maxlength="120" required value="<%= assignment.title || '' %>" placeholder="e.g. Research paper draft"><% if (errors.title) { %><small class="field-error"><%= errors.title %></small><% } %></label>
+            <label>Subject <span>*</span><input name="subject" maxlength="80" required value="<%= assignment.subject || '' %>" placeholder="e.g. Biology"><% if (errors.subject) { %><small class="field-error"><%= errors.subject %></small><% } %></label>
+            <label>Due date <span>*</span><input name="dueDate" type="date" required value="<%= assignment.dueDate || '' %>"><% if (errors.dueDate) { %><small class="field-error"><%= errors.dueDate %></small><% } %></label>
+            <label>Description<textarea name="description" maxlength="1000" rows="4" placeholder="Optional details"><%= assignment.description || '' %></textarea></label>
+            <label>Priority <span>*</span><select name="priority" required><% priorities.forEach((value) => { %><option value="<%= value %>" <%= (assignment.priority || 'Medium') === value ? 'selected' : '' %>><%= value %></option><% }) %></select><% if (errors.priority) { %><small class="field-error"><%= errors.priority %></small><% } %></label>
+            <label>Status <span>*</span><select name="status" required><% statuses.forEach((value) => { %><option value="<%= value %>" <%= (assignment.status || 'Pending') === value ? 'selected' : '' %>><%= value %></option><% }) %></select><% if (errors.status) { %><small class="field-error"><%= errors.status %></small><% } %></label>
+            <div class="form-actions"><a class="button secondary" href="/">Cancel</a><button class="button primary" type="submit"><%= isEdit ? 'Save changes' : 'Add assignment' %></button></div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

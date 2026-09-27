@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f8">
+  <title>Dashboard | Assignment Submission Tracker</title>
+  <link rel="stylesheet" href="/server-dashboard.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="/#dashboard"><span class="brand-mark">T</span><span><strong>Trackwise</strong><small>STUDENT WORKSPACE</small></span></a>
+      <p class="side-heading">WORKSPACE</p>
+      <nav aria-label="Main navigation">
+        <a class="nav-link" href="/#dashboard">▦ <span>Dashboard</span></a>
+        <a class="nav-link active" href="/#assignments">☷ <span>Assignments</span><b><%= total %></b></a>
+      </nav>
+      <div class="side-note"><strong>Your data is safe</strong><small>Saved to this device</small></div>
+    </aside>
+
+    <main id="dashboard">
+      <header class="topbar"><span>Workspace / <strong>Dashboard</strong></span><span><%= todayLabel %></span></header>
+      <div class="content">
+        <section class="page-heading">
+          <div><p class="eyebrow">YOUR SEMESTER, AT A GLANCE</p><h1>Good work starts with a plan.</h1><p>Keep every assignment moving, one deadline at a time.</p></div>
+          <a class="button primary" href="/assignments/new">＋ Add assignment</a>
+        </section>
+
+        <section class="summary-grid" aria-label="Assignment summary">
+          <article class="summary-card"><span>Total assignments</span><strong><%= total %></strong></article>
+          <article class="summary-card"><span>Pending</span><strong><%= pending %></strong></article>
+          <article class="summary-card"><span>In progress</span><strong><%= inProgress %></strong></article>
+          <article class="summary-card"><span>Submitted</span><strong><%= submitted %></strong></article>
+          <article class="summary-card overdue-card"><span>Overdue</span><strong><%= overdue %></strong></article>
+        </section>
+
+        <section class="progress-panel">
+          <div><h2>Your submission progress</h2><p><%= submitted %> of <%= total %> assignments submitted.</p></div>
+          <div class="progress"><strong><%= progress %>%</strong><div class="progress-track"><span style="width: <%= progress %>%"></span></div></div>
+        </section>
+
+        <section class="assignment-section" id="assignments">
+          <div class="section-heading"><div><p class="eyebrow">STAY ON TRACK</p><h2>Your assignments</h2></div><span><%= shown %> shown of <%= total %></span></div>
+
+          <form class="filters" action="/" method="get">
+            <label class="search-field">Search<input type="search" name="q" value="<%= filters.q %>" placeholder="Title or subject"></label>
+            <label>Status<select name="status"><option value="All">All statuses</option><% statuses.forEach((value) => { %><option value="<%= value %>" <%= filters.status === value ? 'selected' : '' %>><%= value %></option><% }) %><option value="Overdue" <%= filters.status === 'Overdue' ? 'selected' : '' %>>Overdue</option></select></label>
+            <label>Priority<select name="priority"><option value="All">All priorities</option><% priorities.forEach((value) => { %><option value="<%= value %>" <%= filters.priority === value ? 'selected' : '' %>><%= value %></option><% }) %></select></label>
+            <label>Subject<select name="subject"><option value="All">All subjects</option><% subjects.forEach((value) => { %><option value="<%= value %>" <%= filters.subject === value ? 'selected' : '' %>><%= value %></option><% }) %></select></label>
+            <label>Sort by<select name="sort"><option value="dueDate" <%= filters.sort === 'dueDate' ? 'selected' : '' %>>Due date</option><option value="priority" <%= filters.sort === 'priority' ? 'selected' : '' %>>Priority</option><option value="status" <%= filters.sort === 'status' ? 'selected' : '' %>>Status</option></select></label>
+            <div class="filter-actions"><button class="button secondary" type="submit">Apply</button><a class="button plain" href="/">Clear</a></div>
+          </form>
+
+          <% if (assignments.length === 0) { %>
+            <div class="empty-state"><h3><%= total === 0 ? 'A fresh start' : 'No assignments found.' %></h3><p><%= total === 0 ? 'Add your first assignment to get organized.' : 'Try another search or change your filters.' %></p><% if (total === 0) { %><a class="button primary" href="/assignments/new">Add your first assignment</a><% } %></div>
+          <% } else { %>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Assignment</th><th>Due date</th><th>Priority</th><th>Status</th><th>Time left</th><th>Actions</th></tr></thead>
+              <tbody>
+                <% assignments.forEach((assignment) => { %>
+                  <tr>
+                    <td data-label="Assignment"><strong><%= assignment.title %></strong><small><%= assignment.subject %><%= assignment.description ? ` · ${assignment.description}` : '' %></small></td>
+                    <td data-label="Due date"><%= formatDate(assignment.dueDate) %></td>
+                    <td data-label="Priority"><span class="badge priority-<%= assignment.priority.toLowerCase() %>"><%= assignment.priority %></span></td>
+                    <td data-label="Status"><form class="status-form" action="/assignments/<%= assignment.id %>/status" method="post"><select name="status" aria-label="Status for <%= assignment.title %>"><% statuses.forEach((value) => { %><option value="<%= value %>" <%= assignment.status === value ? 'selected' : '' %>><%= value %></option><% }) %></select><button class="small-button" type="submit">Save</button></form></td>
+                    <td data-label="Time left" class="<%= assignment.isOverdue ? 'overdue-text' : '' %>"><%= assignment.timeLeft %></td>
+                    <td data-label="Actions"><div class="row-actions"><a class="small-button" href="/assignments/<%= assignment.id %>/edit">Edit</a><form action="/assignments/<%= assignment.id %>/delete" method="post"><button class="small-button danger" type="submit">Delete</button></form></div></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table></div>
+          <% } %>
+        </section>
+        <footer>Trackwise · Small steps make a strong semester.</footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

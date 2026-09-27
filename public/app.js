@@ -1,6 +1,49 @@
 const API_URL = '/api/assignments';
 const allowedStatuses = ['Pending', 'In Progress', 'Submitted'];
-const { daysUntil, isOverdue, filterAndSortAssignments } = window.AssignmentUtils;
+
+// Keep the page usable if the helper file fails to load in the browser.
+const assignmentHelpers = window.AssignmentUtils || (() => {
+  function daysUntil(dueDate, today = new Date()) {
+    const [year, month, day] = dueDate.split('-').map(Number);
+    const due = new Date(year, month - 1, day);
+    const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return Math.round((due - current) / (24 * 60 * 60 * 1000));
+  }
+
+  function isOverdue(assignment, today = new Date()) {
+    return assignment.status !== 'Submitted' && daysUntil(assignment.dueDate, today) < 0;
+  }
+
+  function filterAndSortAssignments(assignments, options) {
+    const query = options.query.trim().toLocaleLowerCase();
+    const priorityRank = { High: 3, Medium: 2, Low: 1 };
+    const statusRank = { Pending: 1, 'In Progress': 2, Submitted: 3 };
+    return assignments.filter((assignment) => {
+      const text = `${assignment.title} ${assignment.subject}`.toLocaleLowerCase();
+      const statusMatches = options.status === 'All'
+        || (options.status === 'Overdue'
+          ? isOverdue(assignment)
+          : assignment.status === options.status);
+      return text.includes(query)
+        && statusMatches
+        && (options.priority === 'All' || assignment.priority === options.priority)
+        && (options.subject === 'All' || assignment.subject === options.subject);
+    }).sort((first, second) => {
+      let order = 0;
+      if (options.sortBy === 'priority') {
+        order = priorityRank[second.priority] - priorityRank[first.priority];
+      } else if (options.sortBy === 'status') {
+        order = statusRank[first.status] - statusRank[second.status];
+      } else {
+        order = first.dueDate.localeCompare(second.dueDate);
+      }
+      return order || first.id - second.id;
+    });
+  }
+
+  return { daysUntil, isOverdue, filterAndSortAssignments };
+})();
+const { daysUntil, isOverdue, filterAndSortAssignments } = assignmentHelpers;
 
 const state = {
   assignments: [],
@@ -19,6 +62,8 @@ const elements = {
   submittedCount: document.querySelector('#submitted-count'),
   overdueCount: document.querySelector('#overdue-count'),
   assignmentTotal: document.querySelector('#assignment-total'),
+  refreshButton: document.querySelector('#refresh-button'),
+  clearFiltersButton: document.querySelector('#clear-filters-button'),
   sidebarCount: document.querySelector('#sidebar-count'),
   progressPercent: document.querySelector('#progress-percent'),
   progressCaption: document.querySelector('#progress-caption'),
@@ -37,12 +82,12 @@ const elements = {
 };
 
 const formFields = {
-  title: elements.form.elements.title,
-  subject: elements.form.elements.subject,
-  description: elements.form.elements.description,
-  dueDate: elements.form.elements.dueDate,
-  priority: elements.form.elements.priority,
-  status: elements.form.elements.status
+  title: elements.form.elements.namedItem('title'),
+  subject: elements.form.elements.namedItem('subject'),
+  description: elements.form.elements.namedItem('description'),
+  dueDate: elements.form.elements.namedItem('dueDate'),
+  priority: elements.form.elements.namedItem('priority'),
+  status: elements.form.elements.namedItem('status')
 };
 
 function toLocalDate(dateString) {
@@ -214,10 +259,12 @@ function renderAssignments() {
     elements.emptyTitle.textContent = 'A fresh start';
     elements.emptyDescription.textContent = 'No assignments yet. Add your first one to get organized.';
     document.querySelector('#empty-add-button').hidden = false;
+    elements.clearFiltersButton.hidden = true;
   } else if (!hasVisibleAssignments) {
     elements.emptyTitle.textContent = 'No assignments found.';
     elements.emptyDescription.textContent = 'Try changing your search or filters to see more assignments.';
     document.querySelector('#empty-add-button').hidden = true;
+    elements.clearFiltersButton.hidden = false;
   }
 }
 
@@ -225,6 +272,18 @@ function updateTodayLabel() {
   document.querySelector('#today-label').textContent = new Intl.DateTimeFormat(undefined, {
     weekday: 'short', month: 'short', day: 'numeric'
   }).format(new Date());
+}
+
+function showAssignmentDialog() {
+  elements.dialog.hidden = false;
+  elements.dialog.classList.add('is-open');
+  document.body.classList.add('dialog-fallback-active');
+}
+
+function closeAssignmentDialog() {
+  elements.dialog.hidden = true;
+  elements.dialog.classList.remove('is-open');
+  document.body.classList.remove('dialog-fallback-active');
 }
 
 function openAddDialog() {
@@ -235,7 +294,7 @@ function openAddDialog() {
   elements.saveButton.textContent = 'Save assignment';
   formFields.status.value = 'Pending';
   formFields.priority.value = 'Medium';
-  elements.dialog.showModal();
+  showAssignmentDialog();
   formFields.title.focus();
 }
 
@@ -250,7 +309,7 @@ function openEditDialog(id) {
   Object.entries(formFields).forEach(([key, field]) => {
     field.value = assignment[key] || '';
   });
-  elements.dialog.showModal();
+  showAssignmentDialog();
   formFields.title.focus();
 }
 
@@ -284,6 +343,19 @@ function showToast(message, type = 'success', duration = 3600) {
   state.toastTimer = window.setTimeout(() => { elements.toastRegion.innerHTML = ''; }, duration);
 }
 
+// Show a message instead of leaving unexpected click-handler errors silent.
+window.addEventListener('error', (event) => {
+  if (event.error && elements.toastRegion) {
+    console.error('Dashboard error:', event.error);
+    showToast('That action could not be completed. Refresh the page and try again.', 'error', 6000);
+  }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Dashboard request error:', event.reason);
+  showToast(event.reason?.message || 'A request could not be completed.', 'error', 6000);
+});
+
 async function handleFormSubmit(event) {
   event.preventDefault();
   clearFormErrors();
@@ -298,7 +370,7 @@ async function handleFormSubmit(event) {
   elements.saveButton.textContent = isEditing ? 'Saving…' : 'Adding…';
   try {
     const result = await request(url, { method, body: JSON.stringify(assignment) });
-    elements.dialog.close();
+    closeAssignmentDialog();
     showToast(isEditing ? 'Assignment updated.' : 'Assignment added.');
     await loadAssignments();
     if (!result) throw new Error('The assignment was saved, but the server response was empty.');
@@ -353,7 +425,7 @@ async function deleteAssignment(id) {
 document.querySelector('#add-assignment-button').addEventListener('click', openAddDialog);
 document.querySelector('#empty-add-button').addEventListener('click', openAddDialog);
 document.querySelectorAll('.close-dialog, .cancel-dialog').forEach((button) => {
-  button.addEventListener('click', () => elements.dialog.close());
+  button.addEventListener('click', closeAssignmentDialog);
 });
 elements.form.addEventListener('submit', handleFormSubmit);
 elements.searchInput.addEventListener('input', renderAssignments);
@@ -374,18 +446,48 @@ elements.rows.addEventListener('change', (event) => {
     changeStatus(id, event.target.value, event.target);
   }
 });
-document.querySelector('a[href="#assignments"]').addEventListener('click', () => {
-  document.querySelectorAll('.nav-link').forEach((link) => link.classList.remove('active'));
-  document.querySelector('a[href="#assignments"]').classList.add('active');
+elements.refreshButton.addEventListener('click', () => loadAssignments({ announce: true }));
+elements.clearFiltersButton.addEventListener('click', () => {
+  elements.searchInput.value = '';
+  elements.statusFilter.value = 'All';
+  elements.priorityFilter.value = 'All';
+  elements.subjectFilter.value = 'All';
+  elements.sortSelect.value = 'dueDate';
+  renderAssignments();
 });
-document.querySelector('a[href="#dashboard"]').addEventListener('click', () => {
-  document.querySelectorAll('.nav-link').forEach((link) => link.classList.remove('active'));
-  document.querySelector('a[href="#dashboard"]').classList.add('active');
+document.querySelectorAll('a[href="#dashboard"], a[href="#assignments"]').forEach((link) => {
+  link.addEventListener('click', (event) => {
+    const targetSection = link.getAttribute('href');
+    const section = document.querySelector(targetSection);
+    if (!section) return;
+
+    event.preventDefault();
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.location.hash !== targetSection) {
+      window.history.replaceState(null, '', targetSection);
+    }
+
+    document.querySelectorAll('.nav-link').forEach((navLink) => {
+      const isActive = navLink.getAttribute('href') === targetSection;
+      navLink.classList.toggle('active', isActive);
+      if (isActive) {
+        navLink.setAttribute('aria-current', 'page');
+      } else {
+        navLink.removeAttribute('aria-current');
+      }
+    });
+  });
 });
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && elements.dialog.open) elements.dialog.close();
+  if (event.key === 'Escape' && !elements.dialog.hidden) closeAssignmentDialog();
 });
+
+elements.dialog.addEventListener('click', (event) => {
+  if (event.target === elements.dialog) closeAssignmentDialog();
+});
+
+window.addEventListener('focus', () => loadAssignments());
 
 updateTodayLabel();
 loadAssignments();

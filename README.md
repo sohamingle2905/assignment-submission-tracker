@@ -6,9 +6,10 @@ A simple college project for keeping track of assignments and their submission d
 
 - Node.js 24 LTS
 - Express.js
-- HTML, CSS, and vanilla JavaScript
+- EJS templates, HTML, and CSS for the server-rendered dashboard
+- Vanilla JavaScript for the earlier frontend assets and reusable utilities
 - SQLite with the `sqlite3` package
-- Jest and Supertest (planned for later testing)
+- Jest and Supertest for automated API tests
 - GitHub Actions, GitHub, and Render (planned for later use)
 
 ## How to install
@@ -30,6 +31,16 @@ npm start
 ```
 
 The application automatically creates the `database` folder and `database/assignments.db` file and creates the assignments table when it starts. The database file is local and ignored by Git. Open [http://localhost:3000](http://localhost:3000) for the homepage or [http://localhost:3000/api/health](http://localhost:3000/api/health) for the health check.
+
+The dashboard is rendered by Express with EJS templates. Add, edit, delete, and status-change actions use regular HTML forms, so these core features do not depend on browser JavaScript. The JSON API remains available under `/api/assignments`.
+
+Run the automated backend tests with:
+
+```bash
+npm test
+```
+
+The Jest and Supertest suite checks assignment API responses, creation, validation, retrieval, updating, deletion, invalid IDs, and invalid status or priority values. Tests use a separate in-memory SQLite database, so they do not change records in `database/assignments.db`.
 
 ## SQLite database
 

@@ -3,9 +3,14 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
 const databaseDirectory = __dirname;
-const databasePath = path.join(databaseDirectory, 'assignments.db');
+const isTestDatabase = process.env.NODE_ENV === 'test';
+const databasePath = isTestDatabase
+  ? ':memory:'
+  : path.join(databaseDirectory, 'assignments.db');
 
-fs.mkdirSync(databaseDirectory, { recursive: true });
+if (!isTestDatabase) {
+  fs.mkdirSync(databaseDirectory, { recursive: true });
+}
 
 const database = new sqlite3.Database(databasePath);
 
