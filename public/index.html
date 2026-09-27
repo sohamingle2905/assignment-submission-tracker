@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="assignment-utils.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -74,7 +75,15 @@
 
         <section class="assignments-section" id="assignments" aria-labelledby="assignments-title">
           <div class="section-heading"><div><p class="eyebrow">STAY ON TRACK</p><h2 id="assignments-title">Your assignments</h2></div><span class="assignment-total" id="assignment-total">0 assignments</span></div>
-          <div class="toolbar"><label class="search-box"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="sr-only">Search assignments</span><input id="search-input" type="search" placeholder="Search assignments or subjects"></label><label class="filter-label"><span class="sr-only">Filter by status</span><select id="status-filter"><option value="All">All statuses</option><option value="Pending">Pending</option><option value="In Progress">In progress</option><option value="Submitted">Submitted</option><option value="Overdue">Overdue</option></select><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label></div>
+          <div class="toolbar">
+            <label class="search-box"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="sr-only">Search assignments by title or subject</span><input id="search-input" type="search" placeholder="Search by title or subject"></label>
+            <div class="toolbar-controls">
+              <label class="filter-label"><span class="sr-only">Filter by status</span><select id="status-filter"><option value="All">All statuses</option><option value="Pending">Pending</option><option value="In Progress">In progress</option><option value="Submitted">Submitted</option><option value="Overdue">Overdue</option></select><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label>
+              <label class="filter-label"><span class="sr-only">Filter by priority</span><select id="priority-filter"><option value="All">All priorities</option><option value="High">High priority</option><option value="Medium">Medium priority</option><option value="Low">Low priority</option></select><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label>
+              <label class="filter-label"><span class="sr-only">Filter by subject</span><select id="subject-filter"><option value="All">All subjects</option></select><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label>
+              <label class="filter-label sort-filter"><span class="sr-only">Sort assignments</span><select id="sort-select"><option value="dueDate">Due date: soonest</option><option value="priority">Priority: high to low</option><option value="status">Status: pending first</option></select><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label>
+            </div>
+          </div>
 
           <div class="table-wrap">
             <table class="assignment-table">

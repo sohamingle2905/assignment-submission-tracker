@@ -1,5 +1,6 @@
 const API_URL = '/api/assignments';
 const allowedStatuses = ['Pending', 'In Progress', 'Submitted'];
+const { daysUntil, isOverdue, filterAndSortAssignments } = window.AssignmentUtils;
 
 const state = {
   assignments: [],
@@ -25,6 +26,9 @@ const elements = {
   progressFill: document.querySelector('#progress-fill'),
   searchInput: document.querySelector('#search-input'),
   statusFilter: document.querySelector('#status-filter'),
+  priorityFilter: document.querySelector('#priority-filter'),
+  subjectFilter: document.querySelector('#subject-filter'),
+  sortSelect: document.querySelector('#sort-select'),
   dialog: document.querySelector('#assignment-dialog'),
   form: document.querySelector('#assignment-form'),
   formTitle: document.querySelector('#form-title'),
@@ -41,23 +45,9 @@ const formFields = {
   status: elements.form.elements.status
 };
 
-function localToday() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
 function toLocalDate(dateString) {
   const [year, month, day] = dateString.split('-').map(Number);
   return new Date(year, month - 1, day);
-}
-
-function dateDifference(dateString) {
-  const millisecondsPerDay = 24 * 60 * 60 * 1000;
-  return Math.round((toLocalDate(dateString) - localToday()) / millisecondsPerDay);
-}
-
-function isOverdue(assignment) {
-  return assignment.status !== 'Submitted' && dateDifference(assignment.dueDate) < 0;
 }
 
 function formatDate(dateString) {
@@ -145,7 +135,21 @@ function renderDashboard() {
   elements.progressFill.style.width = `${percentage}%`;
   elements.progressBar.setAttribute('aria-valuenow', percentage);
 
+  updateSubjectOptions();
   renderAssignments();
+}
+
+function updateSubjectOptions() {
+  const selectedSubject = elements.subjectFilter.value;
+  const subjects = [...new Set(state.assignments.map((assignment) => assignment.subject))]
+    .sort((first, second) => first.localeCompare(second, undefined, { sensitivity: 'base' }));
+
+  elements.subjectFilter.innerHTML = '<option value="All">All subjects</option>'
+    + subjects.map((subject) => `<option value="${escapeHtml(subject)}">${escapeHtml(subject)}</option>`).join('');
+
+  if (subjects.includes(selectedSubject)) {
+    elements.subjectFilter.value = selectedSubject;
+  }
 }
 
 function getTimeLeft(assignment) {
@@ -153,7 +157,7 @@ function getTimeLeft(assignment) {
     return { label: 'Submitted', className: 'done' };
   }
 
-  const days = dateDifference(assignment.dueDate);
+  const days = daysUntil(assignment.dueDate);
   if (days < 0) {
     const overdueDays = Math.abs(days);
     return {
@@ -171,15 +175,22 @@ function statusClass(status) {
 }
 
 function renderAssignments() {
-  const query = elements.searchInput.value.trim().toLowerCase();
-  const filter = elements.statusFilter.value;
-  const visibleAssignments = state.assignments.filter((assignment) => {
-    const matchesText = `${assignment.title} ${assignment.subject} ${assignment.description || ''}`
-      .toLowerCase().includes(query);
-    const matchesStatus = filter === 'All'
-      || (filter === 'Overdue' ? isOverdue(assignment) : assignment.status === filter);
-    return matchesText && matchesStatus;
+  const query = elements.searchInput.value.trim();
+  const status = elements.statusFilter.value;
+  const priority = elements.priorityFilter.value;
+  const subject = elements.subjectFilter.value;
+  const visibleAssignments = filterAndSortAssignments(state.assignments, {
+    query,
+    status,
+    priority,
+    subject,
+    sortBy: elements.sortSelect.value
   });
+
+  const hasFilters = query || status !== 'All' || priority !== 'All' || subject !== 'All';
+  elements.assignmentTotal.textContent = hasFilters
+    ? `${visibleAssignments.length} shown of ${state.assignments.length}`
+    : `${state.assignments.length} ${state.assignments.length === 1 ? 'assignment' : 'assignments'}`;
 
   elements.rows.innerHTML = visibleAssignments.map((assignment) => {
     const dueLabel = getTimeLeft(assignment);
@@ -197,14 +208,15 @@ function renderAssignments() {
 
   const hasAssignments = state.assignments.length > 0;
   const hasVisibleAssignments = visibleAssignments.length > 0;
+  const hasCriteria = Boolean(query) || status !== 'All' || priority !== 'All' || subject !== 'All';
   elements.emptyState.hidden = hasVisibleAssignments;
-  if (!hasAssignments) {
+  if (!hasAssignments && !hasCriteria) {
     elements.emptyTitle.textContent = 'A fresh start';
     elements.emptyDescription.textContent = 'No assignments yet. Add your first one to get organized.';
     document.querySelector('#empty-add-button').hidden = false;
   } else if (!hasVisibleAssignments) {
-    elements.emptyTitle.textContent = 'No matches found';
-    elements.emptyDescription.textContent = 'Try a different search or status filter.';
+    elements.emptyTitle.textContent = 'No assignments found.';
+    elements.emptyDescription.textContent = 'Try changing your search or filters to see more assignments.';
     document.querySelector('#empty-add-button').hidden = true;
   }
 }
@@ -346,6 +358,9 @@ document.querySelectorAll('.close-dialog, .cancel-dialog').forEach((button) => {
 elements.form.addEventListener('submit', handleFormSubmit);
 elements.searchInput.addEventListener('input', renderAssignments);
 elements.statusFilter.addEventListener('change', renderAssignments);
+elements.priorityFilter.addEventListener('change', renderAssignments);
+elements.subjectFilter.addEventListener('change', renderAssignments);
+elements.sortSelect.addEventListener('change', renderAssignments);
 elements.rows.addEventListener('click', (event) => {
   const button = event.target.closest('[data-action]');
   if (!button) return;
