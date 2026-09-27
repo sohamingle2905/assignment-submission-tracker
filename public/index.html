@@ -3,15 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assignment Submission Tracker</title>
+  <meta name="theme-color" content="#f5f6f8">
+  <title>Dashboard | Assignment Submission Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <main class="card">
-    <p class="eyebrow">COLLEGE PROJECT</p>
-    <h1>Assignment Submission Tracker</h1>
-    <p class="intro">A simple place to keep track of your assignments and submission deadlines.</p>
-    <div class="status"><span class="dot" aria-hidden="true"></span> Your tracker is ready to get started.</div>
-  </main>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#dashboard" aria-label="Assignment Tracker dashboard">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.75h7.1l4.15 4.16v9.34A1.75 1.75 0 0 1 16.5 20h-9A1.75 1.75 0 0 1 5.75 18.25v-11A2.5 2.5 0 0 1 8.25 4.75Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 5v4h4M8.5 13h7m-7 3.25h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </span>
+        <span class="brand-copy"><strong>Trackwise</strong><small>STUDENT WORKSPACE</small></span>
+      </a>
+
+      <div class="side-label">WORKSPACE</div>
+      <nav class="side-nav">
+        <a class="nav-link active" href="#dashboard" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.4" stroke="currentColor" stroke-width="1.7"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.4" stroke="currentColor" stroke-width="1.7"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.4" stroke="currentColor" stroke-width="1.7"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.4" stroke="currentColor" stroke-width="1.7"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" href="#assignments">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7.5 5.5h9A2.5 2.5 0 0 1 19 8v10.5H7.5A2.5 2.5 0 0 1 5 16V8a2.5 2.5 0 0 1 2.5-2.5Z" stroke="currentColor" stroke-width="1.7"/><path d="M8.5 9.5h7m-7 3.5h7m-7 3.5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Assignments
+          <span class="nav-count" id="sidebar-count">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="database-note"><span class="database-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7" ry="3" stroke="currentColor" stroke-width="1.6"/><path d="M5 5.5v6c0 1.66 3.13 3 7 3s7-1.34 7-3v-6M5 11.5v6c0 1.66 3.13 3 7 3s7-1.34 7-3v-6" stroke="currentColor" stroke-width="1.6"/></svg></span><span><strong>Your data is safe</strong><small>Saved to this device</small></span><span class="live-dot" aria-label="Connected"></span></div>
+        <div class="sidebar-foot">A calmer way to stay on top of college work.</div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="dashboard">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Workspace</span><span class="crumb-divider">/</span><strong>Dashboard</strong></div>
+        <div class="topbar-right"><span id="today-label" class="today-label"></span><span class="avatar" aria-hidden="true">ST</span></div>
+      </header>
+
+      <div class="dashboard-content">
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">YOUR SEMESTER, AT A GLANCE</p>
+            <h1>Good work starts with a plan.</h1>
+            <p class="page-description">Keep every assignment moving, one deadline at a time.</p>
+          </div>
+          <button class="button button-primary" id="add-assignment-button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Add assignment
+          </button>
+        </section>
+
+        <section class="summary-grid" aria-label="Assignment summary">
+          <article class="summary-card summary-total"><div class="summary-top"><span>Total assignments</span><span class="summary-icon icon-total"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7.5 4.5h9A2.5 2.5 0 0 1 19 7v12H7.5A2.5 2.5 0 0 1 5 16.5V7a2.5 2.5 0 0 1 2.5-2.5Z" stroke="currentColor" stroke-width="1.7"/><path d="M9 9h6m-6 3.5h6m-6 3.5h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span></div><strong class="summary-value" id="total-count">0</strong><span class="summary-note">Across all subjects</span></article>
+          <article class="summary-card"><div class="summary-top"><span>Pending</span><span class="summary-icon icon-pending"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7"/><path d="M12 7.5v5l3 1.75" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span></div><strong class="summary-value" id="pending-count">0</strong><span class="summary-note">Ready when you are</span></article>
+          <article class="summary-card"><div class="summary-top"><span>In progress</span><span class="summary-icon icon-progress"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 16.5 9.25 12l3 2.5L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 7H19v4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><strong class="summary-value" id="in-progress-count">0</strong><span class="summary-note">Work in motion</span></article>
+          <article class="summary-card"><div class="summary-top"><span>Submitted</span><span class="summary-icon icon-submitted"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6.5 12.5 3.6 3.6 7.6-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/></svg></span></div><strong class="summary-value" id="submitted-count">0</strong><span class="summary-note">One step closer</span></article>
+          <article class="summary-card summary-overdue"><div class="summary-top"><span>Overdue</span><span class="summary-icon icon-overdue"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5 21 20H3l9-15.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 9v5m0 2.5v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></div><strong class="summary-value" id="overdue-count">0</strong><span class="summary-note">Past due, not submitted</span></article>
+        </section>
+
+        <section class="progress-panel" aria-labelledby="progress-title">
+          <div class="progress-copy"><span class="progress-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 18.5V12m7 6.5V5.5m7 13v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><div><h2 id="progress-title">Your submission progress</h2><p id="progress-caption">Every finished assignment is a win.</p></div></div>
+          <div class="progress-meter"><div class="progress-label"><span>Completion</span><strong id="progress-percent">0%</strong></div><div class="progress-track" role="progressbar" aria-label="Assignments submitted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-bar"><span id="progress-fill"></span></div></div>
+        </section>
+
+        <section class="assignments-section" id="assignments" aria-labelledby="assignments-title">
+          <div class="section-heading"><div><p class="eyebrow">STAY ON TRACK</p><h2 id="assignments-title">Your assignments</h2></div><span class="assignment-total" id="assignment-total">0 assignments</span></div>
+          <div class="toolbar"><label class="search-box"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="sr-only">Search assignments</span><input id="search-input" type="search" placeholder="Search assignments or subjects"></label><label class="filter-label"><span class="sr-only">Filter by status</span><select id="status-filter"><option value="All">All statuses</option><option value="Pending">Pending</option><option value="In Progress">In progress</option><option value="Submitted">Submitted</option><option value="Overdue">Overdue</option></select><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></label></div>
+
+          <div class="table-wrap">
+            <table class="assignment-table">
+              <thead><tr><th scope="col">Assignment</th><th scope="col">Due date</th><th scope="col">Priority</th><th scope="col">Status</th><th scope="col">Time left</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody id="assignment-rows"></tbody>
+            </table>
+            <div class="empty-state" id="empty-state" hidden>
+              <span class="empty-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4.75h7.1l4.15 4.16v9.34A1.75 1.75 0 0 1 16.5 20h-9A1.75 1.75 0 0 1 5.75 18.25v-11A2.5 2.5 0 0 1 8.25 4.75Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 5v4h4m-9 4h6m-6 3h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+              <h3 id="empty-title">A fresh start</h3><p id="empty-description">No assignments yet. Add your first one to get organized.</p>
+              <button class="button button-secondary" id="empty-add-button" type="button">Add your first assignment</button>
+            </div>
+          </div>
+        </section>
+        <footer class="page-footer"><span>Trackwise</span><span>Small steps make a strong semester.</span></footer>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog class="assignment-dialog" id="assignment-dialog" aria-labelledby="form-title">
+    <form id="assignment-form" novalidate>
+      <div class="dialog-heading"><div><p class="eyebrow">ASSIGNMENT DETAILS</p><h2 id="form-title">Add assignment</h2><p class="dialog-subtitle">A few details now make deadlines easier later.</p></div><button class="icon-button close-dialog" type="button" aria-label="Close form"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+      <div class="form-fields">
+        <label class="form-field field-full"><span>Assignment title <b>*</b></span><input name="title" type="text" maxlength="120" placeholder="e.g. Research paper draft" required><small class="field-error" data-error-for="title" hidden></small></label>
+        <label class="form-field"><span>Subject <b>*</b></span><input name="subject" type="text" maxlength="80" placeholder="e.g. Biology" required><small class="field-error" data-error-for="subject" hidden></small></label>
+        <label class="form-field"><span>Due date <b>*</b></span><input name="dueDate" type="date" required><small class="field-error" data-error-for="dueDate" hidden></small></label>
+        <label class="form-field field-full"><span>Description</span><textarea name="description" rows="3" maxlength="1000" placeholder="Add a few helpful details (optional)"></textarea></label>
+        <label class="form-field"><span>Priority <b>*</b></span><select name="priority" required><option value="Medium">Medium</option><option value="Low">Low</option><option value="High">High</option></select><small class="field-error" data-error-for="priority" hidden></small></label>
+        <label class="form-field"><span>Status <b>*</b></span><select name="status" required><option value="Pending">Pending</option><option value="In Progress">In Progress</option><option value="Submitted">Submitted</option></select><small class="field-error" data-error-for="status" hidden></small></label>
+      </div>
+      <div class="dialog-actions"><button class="button button-secondary cancel-dialog" type="button">Cancel</button><button class="button button-primary" id="save-assignment-button" type="submit">Save assignment</button></div>
+    </form>
+  </dialog>
 </body>
 </html>
